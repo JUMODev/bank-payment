@@ -30,6 +30,7 @@ class AccountPaymentLineCreate(models.TransientModel):
         ('due', 'Due Date'),
         ('move', 'Move Date'),
         ], string="Type of Date Filter", required=True)
+    due_date_start = fields.Date(string="Fecha de vencimiento inicio")
     due_date = fields.Date(string="Due Date")
     move_date = fields.Date(
         string='Move Date', default=fields.Date.context_today)
@@ -75,9 +76,8 @@ class AccountPaymentLineCreate(models.TransientModel):
             domain += [('blocked', '!=', True)]
         if self.date_type == 'due':
             domain += [
-                '|',
                 ('date_maturity', '<=', self.due_date),
-                ('date_maturity', '=', False)]
+                ('date_maturity', '>=', self.due_date_start)]
         elif self.date_type == 'move':
             domain.append(('date', '<=', self.move_date))
         if self.invoice:
