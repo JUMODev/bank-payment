@@ -13,6 +13,11 @@ class AccountInvoice(models.Model):
     payment_order_ok = fields.Boolean(
         compute="_compute_payment_order_ok",
     )
+    payment_line_ids = fields.One2many(
+        comodel_name='account.payment.line',
+        compute='_compute_payment_lines',
+        string="Payment lines",
+    )
 
     @api.depends('payment_mode_id', 'move_id', 'move_id.line_ids',
                  'move_id.line_ids.payment_mode_id')
@@ -26,6 +31,11 @@ class AccountInvoice(models.Model):
             if not payment_mode:
                 payment_mode = invoice.payment_mode_id
             invoice.payment_order_ok = payment_mode.payment_order_ok
+
+    @api.depends('move_id.line_ids.payment_line_ids')
+    def _compute_payment_lines(self):
+        for invoice in self:
+            invoice.payment_line_ids = invoice.move_id.line_ids.mapped('payment_line_ids')
 
     @api.model
     def _get_reference_type(self):

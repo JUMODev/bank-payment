@@ -27,6 +27,18 @@
         <field name="payment_mode_id" position="after">
             <field name="payment_order_ok" invisible="1"/>
         </field>
+        <notebook position="inside">
+            <page string="Payment Lines" name="payment_lines">
+                <field name="payment_line_ids">
+                    <tree string="Payment Lines">
+                        <field name="name"/>
+                        <field name="order_id"/>
+                        <field name="date"/>
+                        <field name="state"/>
+                    </tree>
+                </field>
+            </page>
+        </notebook>
     </field>
 </record>
 
