@@ -16,8 +16,15 @@ class AccountInvoice(models.Model):
     payment_line_ids = fields.One2many(
         comodel_name='account.payment.line',
         compute='_compute_payment_lines',
-        string="Payment lines",
+        string="Líneas de pago",
     )
+    order_ids = fields.One2many(
+        comodel_name='account.payment.line',
+        compute='_compute_payment_lines',
+        search = '_search_order',
+        string="Ordenes de pago",
+    )
+
 
     @api.depends('payment_mode_id', 'move_id', 'move_id.line_ids',
                  'move_id.line_ids.payment_mode_id')
@@ -35,7 +42,14 @@ class AccountInvoice(models.Model):
     @api.depends('move_id.line_ids.payment_line_ids')
     def _compute_payment_lines(self):
         for invoice in self:
-            invoice.payment_line_ids = invoice.move_id.line_ids.mapped('payment_line_ids')
+            payment_line_ids = invoice.move_id.line_ids.mapped('payment_line_ids')
+            invoice.payment_line_ids = payment_line_ids
+            invoice.order_ids = payment_line_ids.mapped('order_id').ids
+
+    def _search_order(self, operator, value):
+        orders = self.env['account.payment.order'].search([('name', operator, value)])
+        invoices = orders.mapped('payment_line_ids.move_line_id.invoice_id')
+        return [('id', 'in', invoices.ids)]
 
     @api.model
     def _get_reference_type(self):
