@@ -19,7 +19,7 @@ class AccountInvoice(models.Model):
         string="Líneas de pago",
     )
     order_ids = fields.One2many(
-        comodel_name='account.payment.line',
+        comodel_name='account.payment.order',
         compute='_compute_payment_lines',
         search = '_search_order',
         string="Ordenes de pago",
