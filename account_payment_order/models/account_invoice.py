@@ -15,14 +15,14 @@ class AccountInvoice(models.Model):
     )
     payment_line_ids = fields.One2many(
         comodel_name='account.payment.line',
-        compute='_compute_payment_lines',
-        string="Líneas de pago",
+        inverse_name ='invoice_id',
+        string="Líneas de pago"
     )
     order_ids = fields.One2many(
         comodel_name='account.payment.order',
-        compute='_compute_payment_lines',
+        compute='_compute_payment_orders',
         search = '_search_order',
-        string="Ordenes de pago",
+        string="Ordenes de pago"
     )
 
 
@@ -39,16 +39,19 @@ class AccountInvoice(models.Model):
                 payment_mode = invoice.payment_mode_id
             invoice.payment_order_ok = payment_mode.payment_order_ok
 
-    @api.depends('move_id.line_ids.payment_line_ids')
-    def _compute_payment_lines(self):
+    @api.depends('payment_line_ids')
+    def _compute_payment_orders(self):
         for invoice in self:
-            payment_line_ids = invoice.move_id.line_ids.mapped('payment_line_ids')
-            invoice.payment_line_ids = payment_line_ids
-            invoice.order_ids = payment_line_ids.mapped('order_id').ids
+            invoice.order_ids = invoice.payment_line_ids.mapped('order_id')
 
     def _search_order(self, operator, value):
-        orders = self.env['account.payment.order'].search([('name', operator, value)])
-        invoices = orders.mapped('payment_line_ids.move_line_id.invoice_id')
+        if (operator, value) == ('!=', False):
+            invoices = self.search([('payment_line_ids', operator, value)])
+        elif (operator, value) == ('=', False):
+            invoices = self.search([('payment_line_ids', operator, value)])
+        else:
+            orders = self.env['account.payment.order'].search([('name', operator, value)])
+            invoices = orders.mapped('payment_line_ids.invoice_id')
         return [('id', 'in', invoices.ids)]
 
     @api.model

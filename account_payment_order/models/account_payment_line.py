@@ -28,6 +28,9 @@ class AccountPaymentLine(models.Model):
     move_line_id = fields.Many2one(
         'account.move.line', string='Journal Item',
         ondelete='restrict')
+    invoice_id = fields.Many2one('account.invoice', string='Invoice',
+                                 compute="_compute_invoice_id",
+                                 readonly=True)
     ml_maturity_date = fields.Date(
         related='move_line_id.date_maturity', readonly=True)
     currency_id = fields.Many2one(
@@ -73,6 +76,13 @@ class AccountPaymentLine(models.Model):
             vals['name'] = self.env['ir.sequence'].next_by_code(
                 'account.payment.line') or 'New'
         return super(AccountPaymentLine, self).create(vals)
+
+    @api.multi
+    @api.depends('move_line_id')
+    def _compute_invoice_id(self):
+        for line in self:
+            if line.currency_id and line.company_currency_id:
+                line.invoice_id = line.move_line_id.invoice_id
 
     @api.multi
     @api.depends(
