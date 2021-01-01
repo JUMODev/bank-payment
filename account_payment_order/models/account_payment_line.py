@@ -30,7 +30,7 @@ class AccountPaymentLine(models.Model):
         ondelete='restrict')
     invoice_id = fields.Many2one('account.invoice', string='Invoice',
                                  compute="_compute_invoice_id",
-                                 readonly=True)
+                                 store=True, readonly=True)
     ml_maturity_date = fields.Date(
         related='move_line_id.date_maturity', readonly=True)
     currency_id = fields.Many2one(
