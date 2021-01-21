@@ -81,8 +81,10 @@ class AccountPaymentLine(models.Model):
     @api.depends('move_line_id')
     def _compute_invoice_id(self):
         for line in self:
-            if line.currency_id and line.company_currency_id:
-                line.invoice_id = line.move_line_id.invoice_id
+            invoice_id = False
+            if line.move_line_id:
+                invoice_id = line.move_line_id.invoice_id
+            line.invoice_id = invoice_id
 
     @api.multi
     @api.depends(
